@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MFKM Nexus Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <main class="layout">
+    <header class="header">
+      <div class="title-block">
+        <p class="eyebrow">Nexus Brew Presents</p>
+        <h1 class="title">Monster Friends Keep Monsters</h1>
+        <p class="lead">
+          Command your crew, juggle the bleachers, and buy allies directly from the deck. Every choice updates the
+          holographic table in real time.
+        </p>
+        <div class="control-bar">
+          <button id="new-game" class="btn" type="button">Start New Game</button>
+          <label class="switch">
+            <input type="checkbox" id="auto-player-2" />
+            <span class="switch__track" aria-hidden="true"></span>
+            <span class="switch__label">Auto Pilot Player 2</span>
+          </label>
+        </div>
+      </div>
+      <section class="scoreboard" id="scoreboard" aria-live="polite" aria-label="Scoreboard"></section>
+    </header>
+
+    <section class="board" aria-label="Game table">
+      <div class="player-zone" id="players" aria-live="polite"></div>
+      <aside class="command" aria-label="Command console">
+        <div class="piles">
+          <article class="pile" id="draw-pile" aria-label="Draw pile">
+            <h2>Draw Pile</h2>
+            <div class="pile__card pile__card--back"></div>
+            <p class="pile__meta"><span id="draw-count">0</span> cards remaining</p>
+          </article>
+          <article class="pile" id="discard-pile" aria-label="Discard pile">
+            <h2>Discard Pile</h2>
+            <div class="pile__card" id="discard-top">Empty</div>
+            <p class="pile__meta"><span id="discard-count">0</span> cards in discard</p>
+          </article>
+        </div>
+        <section class="prompt" aria-live="assertive">
+          <h2>Command Prompt</h2>
+          <p id="prompt-text">Press “Start New Game” to begin.</p>
+          <div class="prompt__options" id="prompt-options"></div>
+        </section>
+        <section class="log" aria-live="polite">
+          <h2>Event Log</h2>
+          <ul id="log-entries"></ul>
+        </section>
+      </aside>
+    </section>
+
+    <footer class="footer" aria-live="polite">
+      <div id="game-summary" class="summary"></div>
+    </footer>
+  </main>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
