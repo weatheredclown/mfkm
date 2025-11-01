@@ -1,0 +1,76 @@
+﻿<Window x:Class="mfkmapp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Card Game" Height="450" Width="800" Background="#000000">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Game Status -->
+            <RowDefinition Height="Auto"/>
+            <!-- Points Labels -->
+            <RowDefinition Height="*"/>
+            <!-- Player Hand List -->
+            <RowDefinition Height="Auto"/>
+            <!-- Play Card Button -->
+            <RowDefinition Height="Auto"/>
+            <!-- Draw Pile -->
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Game Status -->
+        <Label x:Name="GameStatusLabel" Grid.Row="0" Grid.Column="0" 
+               Foreground="White" FontFamily="Consolas" FontSize="16"/>
+
+        <!-- Points Labels -->
+        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,0">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,0">
+                    <Label x:Name="HFLabel" Foreground="Magenta" FontFamily="Consolas" FontSize="16" Content="HF: "/>
+                    <Label x:Name="MFLabel" Foreground="Magenta" FontFamily="Consolas" FontSize="16" Content="MF: " Margin="20,0,0,0"/>
+                    <Label x:Name="EFLabel" Foreground="Magenta" FontFamily="Consolas" FontSize="16" Content="EF: " Margin="20,0,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,0">
+                    <Label x:Name="HMLabel" Foreground="Green" FontFamily="Consolas" FontSize="16" Content="HM: "/>
+                    <Label x:Name="MMLabel" Foreground="Green" FontFamily="Consolas" FontSize="16" Content="MM: " Margin="20,0,0,0"/>
+                    <Label x:Name="EMLabel" Foreground="Green" FontFamily="Consolas" FontSize="16" Content="EM: " Margin="20,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+
+        <!-- Friend and Monster Points -->
+        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Vertical" Margin="0,10,0,0">
+            <Label x:Name="FriendPointsLabel" Foreground="Magenta" FontFamily="Consolas" FontSize="16" Content="Friend Points: "/>
+            <Label x:Name="MonsterPointsLabel" Foreground="Green" FontFamily="Consolas" FontSize="16" Content="Monster Points: "/>
+        </StackPanel>
+
+        <!-- Player Hand List -->
+        <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,20,0,0">
+            <Label Foreground="White" FontFamily="Consolas" FontSize="16" Content="Player 1's hand:"/>
+            <ListBox x:Name="PlayerHandList" Height="100" Background="#000033" Foreground="White" FontFamily="Consolas" FontSize="14">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=RowText}" FontFamily="Consolas" FontSize="14" 
+                           Foreground="{Binding Path=RowColor}" 
+                           />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+
+        <!-- Play Card Button -->
+        <Button x:Name="PlayCardButton" Grid.Row="4" Grid.Column="0" Content="PLAY CARD" 
+                Background="#000033" Foreground="White" 
+                HorizontalAlignment="Center" VerticalAlignment="Center" 
+                FontFamily="Consolas" FontSize="16" Padding="10" 
+                Click="PlayCard_Click" IsDefault="True"/>
+
+        <!-- Draw Pile -->
+        <Label x:Name="DrawPileLabel" Grid.Row="5" Grid.Column="0" Foreground="White" FontFamily="Consolas" FontSize="16" Content="Draw Pile: 60 cards remaining" Margin="0,10,0,0"/>
+    </Grid>
+</Window>
