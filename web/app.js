@@ -774,10 +774,10 @@ class Player {
       this.game.ui.log("Nothing to pick from.");
       return -1;
     }
-    const options = cards.map((card) => {
-      const suffix = card.color === CardColor.FRIEND ? " (f)" : card.color === CardColor.MONSTER ? " (m)" : "";
-      return `${card.toString()}${suffix}`;
-    });
+    const options = cards.map((card) => ({
+      label: card.toString(),
+      card
+    }));
     return this.getPlayerChoice(prompt, options, { canPass: allowPass });
   }
 
@@ -795,11 +795,10 @@ class Player {
     if (maxCount === 0) {
       return -1;
     }
-    const rand = Math.floor(Math.random() * maxCount);
-    if (canPass && Math.random() < 0.15) {
+    if (canPass && Math.floor(Math.random() * 10) === 0) {
       return -1;
     }
-    return rand;
+    return Math.floor(Math.random() * maxCount);
   }
 }
 
@@ -963,9 +962,16 @@ class GameUI {
   renderPlayers(game) {
     const html = game.players
       .map((player, index) => {
-        const active = index === game.currentPlayerIndex ? "active" : "";
+        const isActive = index === game.currentPlayerIndex;
+        const activeClass = isActive ? "active" : "";
+        const handCount = player.hand.length;
+        const bankCount = player.bankedCards.length;
+        const bleacherCount = player.bleachers.length;
+        const handNote = `${handCount} card${handCount === 1 ? "" : "s"}${isActive ? "" : " hidden"}`;
+        const bankNote = `${bankCount} card${bankCount === 1 ? "" : "s"}`;
+        const tableNote = `${bleacherCount} face-up card${bleacherCount === 1 ? "" : "s"}`;
         return `
-          <section class="player-card ${active}">
+          <section class="player-card ${activeClass}">
             <header class="player-card__header">
               <h2 class="player-card__title">
                 <span>${escapeHtml(player.name)}</span>
@@ -977,9 +983,20 @@ class GameUI {
                 <span class="stat-chip" style="color: var(--monster)">♢ ${player.greenPoints}</span>
               </div>
             </header>
-            ${this.renderSection("Hand", player.hand)}
-            ${this.renderSection("Bank", player.bankedCards)}
-            ${this.renderSection("Bleachers", player.bleachers)}
+            ${this.renderSection("Hand", player.hand, {
+              hidden: !isActive,
+              titleNote: handNote,
+              listClasses: ["card-list--hand"]
+            })}
+            ${this.renderSection("Table – In Play", player.bleachers, {
+              titleNote: tableNote,
+              listClasses: ["card-list--table"],
+              cardOptions: { classes: ["card--table"] }
+            })}
+            ${this.renderSection("Bank", player.bankedCards, {
+              titleNote: bankNote,
+              listClasses: ["card-list--bank"]
+            })}
           </section>
         `;
       })
@@ -987,37 +1004,67 @@ class GameUI {
     this.playersContainer.innerHTML = html;
   }
 
-  renderSection(title, cards) {
-    const emptyClass = cards.length ? "" : " section--empty";
-    const cardsHtml = cards
-      .map((card) => this.renderCard(card))
-      .join("");
+  renderSection(title, cards, options = {}) {
+    const { hidden = false, titleNote = "", listClasses = [], cardOptions = {} } = options;
+    const sectionClasses = ["section"];
+    if (!cards.length) {
+      sectionClasses.push("section--empty");
+    }
+    const listClassNames = ["card-list", ...listClasses];
+    if (hidden) {
+      listClassNames.push("card-list--hidden");
+    }
+    const noteMarkup = titleNote
+      ? ` <span class="section-title__note">${escapeHtml(titleNote)}</span>`
+      : "";
+    let cardsHtml = "";
+    if (hidden) {
+      cardsHtml = cards
+        .map((_, index) => this.renderCardBack({ label: `${title} card ${index + 1}` }))
+        .join("");
+    } else {
+      cardsHtml = cards.map((card) => this.renderCard(card, cardOptions)).join("");
+    }
     return `
-      <section class="section${emptyClass}">
-        <h3 class="section-title">${escapeHtml(title)}</h3>
-        <div class="card-list">${cardsHtml}</div>
+      <section class="${sectionClasses.join(" ")}">
+        <h3 class="section-title">${escapeHtml(title)}${noteMarkup}</h3>
+        <div class="${listClassNames.join(" ")}">${cardsHtml}</div>
       </section>
     `;
   }
 
-  renderCard(card) {
-    const classes = ["card"];
+  renderCard(card, options = {}) {
+    const { classes = [], compact = false } = options;
+    const cardClasses = ["card", ...classes];
+    if (compact) {
+      cardClasses.push("card--compact");
+    }
     if (card.type === CardType.ACTION) {
-      classes.push("card--action");
+      cardClasses.push("card--action");
     } else if (card.color === CardColor.FRIEND) {
-      classes.push("card--friend");
+      cardClasses.push("card--friend");
     } else if (card.color === CardColor.MONSTER) {
-      classes.push("card--monster");
+      cardClasses.push("card--monster");
     }
     if (card.type === CardType.POINT) {
-      classes.push("card--point");
+      cardClasses.push("card--point");
     }
     const value = card.value ? card.value : "—";
     return `
-      <article class="${classes.join(" ")}">
+      <article class="${cardClasses.join(" ")}">
         <span class="card__label">${escapeHtml(card.label)}</span>
         <span class="card__value">${value}</span>
         <span class="card__meta">${escapeHtml(card.description)}</span>
+      </article>
+    `;
+  }
+
+  renderCardBack({ label = "Hidden card" } = {}) {
+    return `
+      <article class="card card--back" aria-label="${escapeHtml(label)}">
+        <span class="card__label">Hidden</span>
+        <span class="card__value">?</span>
+        <span class="card__meta">${escapeHtml(label)}</span>
       </article>
     `;
   }
@@ -1027,12 +1074,22 @@ class GameUI {
       this.drawCount.textContent = "0";
       this.discardCount.textContent = "0";
       this.discardTop.textContent = "Empty";
+      this.discardTop.classList.remove("pile__card--filled");
       return;
     }
     this.drawCount.textContent = deck.cardsLeft();
     this.discardCount.textContent = deck.discardPile.length;
     const top = deck.topDiscard();
-    this.discardTop.textContent = top ? top.toString() : "Empty";
+    if (top) {
+      this.discardTop.classList.add("pile__card--filled");
+      this.discardTop.innerHTML = this.renderCard(top, {
+        classes: ["card--pile"],
+        compact: true
+      });
+    } else {
+      this.discardTop.classList.remove("pile__card--filled");
+      this.discardTop.textContent = "Empty";
+    }
   }
 
   async promptSelection(prompt, options, { canPass }) {
@@ -1042,10 +1099,23 @@ class GameUI {
     this.promptText.textContent = prompt;
     this.promptOptions.innerHTML = "";
     const frag = document.createDocumentFragment();
-    options.forEach((option, index) => {
+    const normalized = options.map((option) =>
+      typeof option === "string" ? { label: option } : option
+    );
+    normalized.forEach((option, index) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = option;
+      button.classList.add("prompt-option");
+      if (option.card) {
+        button.classList.add("prompt-option--card");
+        button.setAttribute("aria-label", option.label);
+        button.innerHTML = this.renderCard(option.card, {
+          classes: ["card--selectable"],
+          compact: true
+        });
+      } else {
+        button.textContent = option.label;
+      }
       button.addEventListener("click", () => {
         this.resolveSelection(index);
       });
